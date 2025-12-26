@@ -30,12 +30,12 @@ class WeatherViewModel(
 
         viewModelScope.launch {
             try {
-                // Récupérer la localisation
+
                 val location = locationManager.getCurrentLocation()
                 _currentLocation.value = location
 
                 location?.let { (latitude, longitude) ->
-                    // Appeler l'API
+
                     val response = RetrofitInstance.weatherApi.getCurrentWeather(
                         latitude = latitude,
                         longitude = longitude
@@ -51,9 +51,6 @@ class WeatherViewModel(
         }
     }
 
-    fun refreshWeather() {
-        fetchWeather()
-    }
 
     sealed class WeatherState {
         object Loading : WeatherState()

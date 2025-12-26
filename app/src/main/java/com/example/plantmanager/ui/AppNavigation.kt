@@ -1,16 +1,23 @@
 package com.example.plantmanager.ui
 
-
-
-
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.example.plantmanager.viewmodels.PlantViewModel
+import com.example.plantmanager.viewmodels.WeatherViewModel
 import com.example.plantmanager.ui.screens.PlantListScreen
+import com.example.plantmanager.ui.screens.AddPlantScreen
+import com.example.plantmanager.ui.screens.PlantDetailScreen
+import com.example.plantmanager.ui.screens.EditPlantScreen
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(
+    plantViewModel: PlantViewModel,
+    weatherViewModel: WeatherViewModel
+) {
     val navController = rememberNavController()
 
     NavHost(
@@ -19,18 +26,49 @@ fun AppNavigation() {
     ) {
         composable(Screen.PlantList.route) {
             PlantListScreen(
+                plantViewModel = plantViewModel,
+                weatherViewModel = weatherViewModel,
                 onPlantClick = { plant ->
-                    // Naviguer vers le détail
-                    // navController.navigate("plant_detail/${plant.id}")
+                    navController.navigate(Screen.PlantDetail.createRoute(plant))
                 },
                 onAddPlantClick = {
-                    // Naviguer vers l'ajout
-                    // navController.navigate(Screen.AddPlant.route)
+                    navController.navigate(Screen.AddPlant.route)
                 }
             )
         }
 
-        // Ajouter d'autres écrans ici
+        composable(Screen.AddPlant.route) {
+            AddPlantScreen(
+                plantViewModel = plantViewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Screen.PlantDetail.route,
+            arguments = listOf(navArgument("plantId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val plantId = backStackEntry.arguments?.getInt("plantId") ?: return@composable
+            PlantDetailScreen(
+                plantId = plantId,
+                plantViewModel = plantViewModel,
+                onBack = { navController.popBackStack() },
+                onEdit = { id -> navController.navigate(Screen.EditPlant.createRoute(id)) },
+                weatherViewModel = weatherViewModel
+            )
+        }
+
+        composable(
+            route = Screen.EditPlant.route,
+            arguments = listOf(navArgument("plantId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val plantId = backStackEntry.arguments?.getInt("plantId") ?: return@composable
+            EditPlantScreen(
+                plantId = plantId,
+                plantViewModel = plantViewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
     }
 }
 
@@ -40,5 +78,8 @@ sealed class Screen(val route: String) {
         fun createRoute(plantId: Int) = "plant_detail/$plantId"
     }
     object AddPlant : Screen("add_plant")
+    object EditPlant : Screen("plant_edit/{plantId}") {
+        fun createRoute(plantId: Int) = "plant_edit/$plantId"
+    }
     object Settings : Screen("settings")
 }

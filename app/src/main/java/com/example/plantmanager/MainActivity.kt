@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelProvider
 import com.example.plantmanager.data.LocationManager
 import com.example.plantmanager.data.local.PlantDatabase
-import com.example.plantmanager.ui.screens.PlantListScreen
+import com.example.plantmanager.ui.AppNavigation
 import com.example.plantmanager.ui.theme.PlantManagerTheme
 import com.example.plantmanager.viewmodels.PlantViewModel
 import com.example.plantmanager.viewmodels.WeatherViewModel
@@ -48,18 +48,12 @@ override fun onCreate(savedInstanceState: Bundle?) {
                 modifier = Modifier.fillMaxSize(),
                 color = MaterialTheme.colorScheme.background
             ) {
-                PlantListScreen(
+                AppNavigation(
                     plantViewModel = plantViewModel,
-                    weatherViewModel = weatherViewModel,
-                    onPlantClick = { plantId ->
-                        // TODO: Naviguer vers détail
-                    },
-                    onAddPlantClick = {
-                        // TODO: Naviguer vers ajout
-                    }
+                    weatherViewModel = weatherViewModel
                 )
             }
         }
     }
 }
-}
+} 

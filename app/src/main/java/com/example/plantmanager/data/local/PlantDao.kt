@@ -11,6 +11,9 @@ interface PlantDao {
 
     @Query("SELECT * FROM plants WHERE id = :plantId")
     fun getPlantById(plantId: Int): Flow<Plant?>
+    
+    @Query("SELECT * FROM plants WHERE id = :plantId LIMIT 1")
+    suspend fun getPlantNow(plantId: Int): Plant?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPlant(plant: Plant)
