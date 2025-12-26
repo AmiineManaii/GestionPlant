@@ -38,6 +38,7 @@ fun PlantDetailScreen(
     plantViewModel: PlantViewModel,
     onBack: () -> Unit,
     onEdit: (Int) -> Unit,
+    onViewHistory: (Int) -> Unit,
     weatherViewModel: com.example.plantmanager.viewmodels.WeatherViewModel
 ) {
     val plantState by plantViewModel.getPlantFlowById(plantId).collectAsState(initial = null)
@@ -88,13 +89,13 @@ fun PlantDetailScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Retour",
-                            tint = Color.White
+                            tint = Color.Gray
                         )
                     }
                 },
                 actions = {
                     IconButton(onClick = { showDeleteConfirm = true }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Supprimer", tint = Color.White)
+                        Icon(Icons.Default.Delete, contentDescription = "Supprimer", tint = Color.Gray)
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
@@ -200,6 +201,7 @@ fun PlantDetailScreen(
 
             // Carte arrosage avec progression + dates exactes
             item {
+                val history by plantViewModel.getLastWateringEvents(plantId).collectAsState(initial = emptyList())
                 val daysSinceLast = ((System.currentTimeMillis() - plant.lastWateringDate) / (24 * 60 * 60 * 1000)).toLong().coerceAtLeast(0).toInt()
                 val progress = (daysSinceLast.toFloat() / plant.wateringFrequency).coerceIn(0f, 1f)
                 val needsWaterNow = progress >= 1f
@@ -338,6 +340,27 @@ fun PlantDetailScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center
                             )
+                        }
+                        Spacer(Modifier.height(24.dp))
+                        Text(
+                            text = "Historique des arrosages",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        val dateFormatterHist = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
+                        val timeFormatterHist = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+                        history.forEach { ev ->
+                            val d = dateFormatterHist.format(Date(ev.date))
+                            val t = timeFormatterHist.format(Date(ev.date))
+                            Text("$d à $t", style = MaterialTheme.typography.bodyLarge)
+                        }
+                        if (history.isEmpty()) {
+                            Text("Aucun arrosage enregistré", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Spacer(Modifier.height(12.dp))
+                        TextButton(onClick = { onViewHistory(plantId) }) {
+                            Text("Voir plus")
                         }
                     }
                 }

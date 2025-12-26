@@ -2,6 +2,7 @@ package com.example.plantmanager.data.local
 
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
+import com.example.plantmanager.data.local.WateringEvent
 
 @Dao
 interface PlantDao {
@@ -16,7 +17,7 @@ interface PlantDao {
     suspend fun getPlantNow(plantId: Int): Plant?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertPlant(plant: Plant)
+    suspend fun insertPlant(plant: Plant): Long
 
     @Update
     suspend fun updatePlant(plant: Plant)
@@ -32,4 +33,13 @@ interface PlantDao {
 
     @Query("UPDATE plants SET lastWateringDate = :wateringDate WHERE id = :plantId")
     suspend fun waterPlant(plantId: Int, wateringDate: Long = System.currentTimeMillis())
+
+    @Insert
+    suspend fun insertWateringEvent(event: WateringEvent)
+
+    @Query("SELECT * FROM watering_events WHERE plantId = :plantId ORDER BY date DESC LIMIT 5")
+    fun getLastWateringEvents(plantId: Int): Flow<List<WateringEvent>>
+
+    @Query("SELECT * FROM watering_events WHERE plantId = :plantId ORDER BY date DESC")
+    fun getAllWateringEvents(plantId: Int): Flow<List<WateringEvent>>
 }

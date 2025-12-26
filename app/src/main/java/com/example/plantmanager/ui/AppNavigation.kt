@@ -12,6 +12,7 @@ import com.example.plantmanager.ui.screens.PlantListScreen
 import com.example.plantmanager.ui.screens.AddPlantScreen
 import com.example.plantmanager.ui.screens.PlantDetailScreen
 import com.example.plantmanager.ui.screens.EditPlantScreen
+import com.example.plantmanager.ui.screens.WateringHistoryScreen
 
 @Composable
 fun AppNavigation(
@@ -54,6 +55,7 @@ fun AppNavigation(
                 plantViewModel = plantViewModel,
                 onBack = { navController.popBackStack() },
                 onEdit = { id -> navController.navigate(Screen.EditPlant.createRoute(id)) },
+                onViewHistory = { id -> navController.navigate(Screen.WateringHistory.createRoute(id)) },
                 weatherViewModel = weatherViewModel
             )
         }
@@ -64,6 +66,18 @@ fun AppNavigation(
         ) { backStackEntry ->
             val plantId = backStackEntry.arguments?.getInt("plantId") ?: return@composable
             EditPlantScreen(
+                plantId = plantId,
+                plantViewModel = plantViewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Screen.WateringHistory.route,
+            arguments = listOf(navArgument("plantId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val plantId = backStackEntry.arguments?.getInt("plantId") ?: return@composable
+            WateringHistoryScreen(
                 plantId = plantId,
                 plantViewModel = plantViewModel,
                 onBack = { navController.popBackStack() }
@@ -82,4 +96,7 @@ sealed class Screen(val route: String) {
         fun createRoute(plantId: Int) = "plant_edit/$plantId"
     }
     object Settings : Screen("settings")
+    object WateringHistory : Screen("watering_history/{plantId}") {
+        fun createRoute(plantId: Int) = "watering_history/$plantId"
+    }
 }

@@ -57,6 +57,7 @@ fun AddPlantScreen(
                                 maxTemperature = maxTemperatureText.toIntOrNull()
                             )
                             plantViewModel.insertPlant(plant)
+                            plantViewModel
                             onBack()
                         },
                         enabled = isValid

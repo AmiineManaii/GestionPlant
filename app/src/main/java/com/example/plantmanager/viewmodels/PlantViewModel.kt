@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.plantmanager.data.local.Plant
 import com.example.plantmanager.data.local.PlantDao
+import com.example.plantmanager.data.local.WateringEvent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +24,8 @@ class PlantViewModel(private val plantDao: PlantDao) : ViewModel() {
     val plantsNeedingWater: Flow<List<Plant>> = plantDao.getPlantsNeedingWater()
 
     fun insertPlant(plant: Plant) = viewModelScope.launch {
-        plantDao.insertPlant(plant)
+        val insertedId = plantDao.insertPlant(plant).toInt()
+        plantDao.insertWateringEvent(WateringEvent(plantId = insertedId, date = plant.lastWateringDate))
     }
 
     fun updatePlant(plant: Plant) = viewModelScope.launch {
@@ -48,10 +50,18 @@ class PlantViewModel(private val plantDao: PlantDao) : ViewModel() {
             val elapsed = System.currentTimeMillis() - plant.lastWateringDate
             val halfPeriodMillis = (plant.wateringFrequency * 24L * 60L * 60L * 1000L) / 2L
             if (elapsed >= halfPeriodMillis) {
-                plantDao.waterPlant(plantId)
+                val now = System.currentTimeMillis()
+                plantDao.waterPlant(plantId, now)
+                plantDao.insertWateringEvent(WateringEvent(plantId = plantId, date = now))
             }
         }
     }
+
+    fun getLastWateringEvents(plantId: Int): Flow<List<com.example.plantmanager.data.local.WateringEvent>> =
+        plantDao.getLastWateringEvents(plantId)
+
+    fun getAllWateringEvents(plantId: Int): Flow<List<com.example.plantmanager.data.local.WateringEvent>> =
+        plantDao.getAllWateringEvents(plantId)
 
 
     suspend fun needsWatering(plant: Plant): Boolean {
