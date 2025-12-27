@@ -24,6 +24,14 @@ import com.example.plantmanager.ui.components.PlantCard
 import com.example.plantmanager.ui.components.LocationPermissionDialog
 import com.example.plantmanager.viewmodels.PlantViewModel
 import com.example.plantmanager.viewmodels.WeatherViewModel
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.WaterDrop
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,7 +40,8 @@ fun PlantListScreen(
     weatherViewModel: WeatherViewModel = viewModel(),
     onPlantClick: (Int) -> Unit,
     onAddPlantClick: () -> Unit,
-    onWeatherClick: () -> Unit
+    onWeatherClick: () -> Unit,
+    onCalendarClick: () -> Unit
 ) {
     val plants by plantViewModel.allPlants.collectAsState(initial = emptyList())
     val weatherState by weatherViewModel.weatherState.collectAsState()
@@ -108,6 +117,11 @@ fun PlantListScreen(
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
+                },
+                actions = {
+                    IconButton(onClick = onCalendarClick) {
+                        Icon(Icons.Default.CalendarToday, contentDescription = "Calendrier")
+                    }
                 }
             )
         },
@@ -120,76 +134,293 @@ fun PlantListScreen(
             }
         }
     ) { paddingValues ->
-        Column(
+        val filteredPlants = if (plants.isEmpty()) emptyList() else when (filter) {
+            FilterType.ALL -> plants
+            FilterType.NEEDS_WATER -> {
+                plants.filter { plant ->
+                    val nextWatering = plant.lastWateringDate +
+                            (plant.wateringFrequency * 24 * 60 * 60 * 1000)
+                    System.currentTimeMillis() > nextWatering
+                }
+            }
+        }
+
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(paddingValues),
+            contentPadding = PaddingValues(bottom = 96.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            WeatherCard(
-                weatherState = weatherState,
-                location = location,
-                hasLocationPermission = hasLocationPermission,
-                onRefresh = { weatherViewModel.fetchWeather() },
-                onRequestPermission = { requestLocationPermission() },
-                onClick = onWeatherClick
-            )
-
-
-            if (showPermissionDialog && !hasLocationPermission) {
-                LocationPermissionDialog(
-                    onDismiss = { showPermissionDialog = false },
-                    onAllow = {
-                        showPermissionDialog = false
-                        requestLocationPermission()
-                    },
-                    onUseDefault = {
-                        showPermissionDialog = false
-                        weatherViewModel.fetchWeather()
-                    }
+            item {
+                WeatherCard(
+                    weatherState = weatherState,
+                    location = location,
+                    hasLocationPermission = hasLocationPermission,
+                    onRefresh = { weatherViewModel.fetchWeather() },
+                    onRequestPermission = { requestLocationPermission() },
+                    onClick = onWeatherClick
                 )
             }
 
+            // Calendrier déplacé vers écran dédié
 
-            FilterRow(
-                currentFilter = filter,
-                onFilterChange = { filter = it },
-                plantCount = plants.size
-            )
-
+            item {
+                FilterRow(
+                    currentFilter = filter,
+                    onFilterChange = { filter = it },
+                    plantCount = plants.size
+                )
+            }
 
             if (plants.isEmpty()) {
-                EmptyState(onAddClick = onAddPlantClick)
+                item { EmptyState(onAddClick = onAddPlantClick) }
             } else {
-                val filteredPlants = when (filter) {
-                    FilterType.ALL -> plants
-                    FilterType.NEEDS_WATER -> {
+                items(filteredPlants) { plant ->
+                    PlantCard(
+                        plant = plant,
+                        onClick = { onPlantClick(plant.id) },
+                        onWaterClick = { plantViewModel.waterPlant(plant.id) }
+                    )
+                }
+            }
+        }
 
-                        plants.filter { plant ->
-                            val nextWatering = plant.lastWateringDate +
-                                    (plant.wateringFrequency * 24 * 60 * 60 * 1000)
-                            System.currentTimeMillis() > nextWatering
+        if (showPermissionDialog && !hasLocationPermission) {
+            LocationPermissionDialog(
+                onDismiss = { showPermissionDialog = false },
+                onAllow = {
+                    showPermissionDialog = false
+                    requestLocationPermission()
+                },
+                onUseDefault = {
+                    showPermissionDialog = false
+                    weatherViewModel.fetchWeather()
+                }
+            )
+        }
+    }
+
+    
+}
+
+@Composable
+fun UpcomingWateringCalendar(
+    plants: List<com.example.plantmanager.data.local.Plant>,
+    plantViewModel: PlantViewModel
+) {
+    var currentYear by remember { mutableStateOf(Calendar.getInstance().get(Calendar.YEAR)) }
+    var currentMonth by remember { mutableStateOf(Calendar.getInstance().get(Calendar.MONTH)) }
+    var selectedDay by remember { mutableStateOf<Int?>(null) }
+    val keyFormatter = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
+    val monthTitleFormatter = remember { SimpleDateFormat("MMMM yyyy", Locale.getDefault()) }
+    val monthStart = remember(currentYear, currentMonth) {
+        Calendar.getInstance().apply {
+            set(Calendar.YEAR, currentYear)
+            set(Calendar.MONTH, currentMonth)
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+    }
+    val monthEnd = remember(currentYear, currentMonth) {
+        Calendar.getInstance().apply {
+            set(Calendar.YEAR, currentYear)
+            set(Calendar.MONTH, currentMonth)
+            set(Calendar.DAY_OF_MONTH, getActualMaximum(Calendar.DAY_OF_MONTH))
+            set(Calendar.HOUR_OF_DAY, 23)
+            set(Calendar.MINUTE, 59)
+            set(Calendar.SECOND, 59)
+            set(Calendar.MILLISECOND, 999)
+        }
+    }
+    val eventsByDay = remember(plants, currentYear, currentMonth) {
+        val map = mutableMapOf<String, MutableList<com.example.plantmanager.data.local.Plant>>()
+        val startMillis = monthStart.timeInMillis
+        val endMillis = monthEnd.timeInMillis
+        plants.forEach { plant ->
+            val freqMs = plant.wateringFrequency * 24L * 60L * 60L * 1000L
+            var next = plant.lastWateringDate
+            while (next < startMillis) next += freqMs
+            while (next <= endMillis) {
+                val key = keyFormatter.format(Date(next))
+                val list = map.getOrPut(key) { mutableListOf() }
+                list.add(plant)
+                next += freqMs
+            }
+        }
+        map
+    }
+    val days = remember(currentYear, currentMonth) {
+        val c = Calendar.getInstance().apply {
+            set(Calendar.YEAR, currentYear)
+            set(Calendar.MONTH, currentMonth)
+            set(Calendar.DAY_OF_MONTH, 1)
+        }
+        val maxDay = c.getActualMaximum(Calendar.DAY_OF_MONTH)
+        val startDow = c.get(Calendar.DAY_OF_WEEK)
+        val startIndex = (startDow + 5) % 7
+        val result = mutableListOf<Int?>()
+        repeat(startIndex) { result.add(null) }
+        for (d in 1..maxDay) result.add(d)
+        while (result.size % 7 != 0) result.add(null)
+        result
+    }
+    val monthTitle = remember(currentYear, currentMonth) {
+        monthTitleFormatter.format(monthStart.time).replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+    }
+    ElevatedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                IconButton(onClick = {
+                    if (currentMonth == 0) {
+                        currentMonth = 11
+                        currentYear -= 1
+                    } else {
+                        currentMonth -= 1
+                    }
+                    selectedDay = null
+                }) { Icon(Icons.Default.ArrowBack, contentDescription = "Mois précédent") }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.CalendarToday, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(8.dp))
+                    Text(monthTitle, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                }
+                IconButton(onClick = {
+                    if (currentMonth == 11) {
+                        currentMonth = 0
+                        currentYear += 1
+                    } else {
+                        currentMonth += 1
+                    }
+                    selectedDay = null
+                }) { Icon(Icons.Default.ArrowForward, contentDescription = "Mois suivant") }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                listOf("Lun","Mar","Mer","Jeu","Ven","Sam","Dim").forEach {
+                    Text(it, modifier = Modifier.weight(1f), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelLarge)
+                }
+            }
+            for (row in days.chunked(7)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    row.forEach { d ->
+                        if (d == null) {
+                            Box(modifier = Modifier.weight(1f).height(56.dp))
+                        } else {
+                            val c = Calendar.getInstance().apply {
+                                set(Calendar.YEAR, currentYear)
+                                set(Calendar.MONTH, currentMonth)
+                                set(Calendar.DAY_OF_MONTH, d)
+                                set(Calendar.HOUR_OF_DAY, 0)
+                                set(Calendar.MINUTE, 0)
+                                set(Calendar.SECOND, 0)
+                                set(Calendar.MILLISECOND, 0)
+                            }
+                            val key = keyFormatter.format(c.time)
+                            val hasEvents = eventsByDay[key]?.isNotEmpty() == true
+                            ElevatedCard(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(56.dp),
+                                colors = CardDefaults.elevatedCardColors(
+                                    containerColor = if (hasEvents) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+                                ),
+                                onClick = { selectedDay = d }
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 8.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("$d", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                                    if (hasEvents) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(Icons.Default.WaterDrop, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                            val count = eventsByDay[key]?.size ?: 0
+                                            if (count > 1) {
+                                                Spacer(Modifier.width(4.dp))
+                                                Text("x$count", style = MaterialTheme.typography.labelMedium)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
-
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(filteredPlants) { plant ->
-                        PlantCard(
-                            plant = plant,
-                            onClick = { onPlantClick(plant.id) },
-                            onWaterClick = { plantViewModel.waterPlant(plant.id) }
-                        )
+            }
+            selectedDay?.let { d ->
+                val c = Calendar.getInstance().apply {
+                    set(Calendar.YEAR, currentYear)
+                    set(Calendar.MONTH, currentMonth)
+                    set(Calendar.DAY_OF_MONTH, d)
+                }
+                val key = keyFormatter.format(c.time)
+                val dayEvents = eventsByDay[key].orEmpty()
+                val start = Calendar.getInstance().apply {
+                    set(Calendar.YEAR, currentYear)
+                    set(Calendar.MONTH, currentMonth)
+                    set(Calendar.DAY_OF_MONTH, d)
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }.timeInMillis
+                val end = Calendar.getInstance().apply {
+                    set(Calendar.YEAR, currentYear)
+                    set(Calendar.MONTH, currentMonth)
+                    set(Calendar.DAY_OF_MONTH, d)
+                    set(Calendar.HOUR_OF_DAY, 23)
+                    set(Calendar.MINUTE, 59)
+                    set(Calendar.SECOND, 59)
+                    set(Calendar.MILLISECOND, 999)
+                }.timeInMillis
+                val wateredEvents by plantViewModel.getEventsInRange(start, end).collectAsState(initial = emptyList())
+                val wateredIds = wateredEvents.map { it.plantId }.toSet()
+                val alreadyWatered = dayEvents.filter { wateredIds.contains(it.id) }
+                val upcoming = dayEvents.filter { !wateredIds.contains(it.id) }
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (upcoming.isNotEmpty()) {
+                        Text("À arroser le $d", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        upcoming.forEach { p ->
+                            ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                                Row(modifier = Modifier.padding(12.dp)) {
+                                    Text(p.name, style = MaterialTheme.typography.titleSmall)
+                                }
+                            }
+                        }
+                    }
+                    if (alreadyWatered.isNotEmpty()) {
+                        Text("Déjà arrosées le $d", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        alreadyWatered.forEach { p ->
+                            ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                                Row(modifier = Modifier.padding(12.dp)) {
+                                    Text(p.name, style = MaterialTheme.typography.titleSmall)
+                                }
+                            }
+                        }
+                    }
+                    if (dayEvents.isEmpty()) {
+                        Text("Aucun arrosage ce jour", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
         }
     }
-
-    
 }
 
 

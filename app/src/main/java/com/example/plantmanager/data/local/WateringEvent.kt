@@ -8,5 +8,6 @@ data class WateringEvent(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val plantId: Int,
-    val date: Long = System.currentTimeMillis()
+    val date: Long = System.currentTimeMillis(),
+    val source: String = "manual" // "manual" or "initial"
 )

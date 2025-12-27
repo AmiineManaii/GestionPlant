@@ -25,7 +25,7 @@ class PlantViewModel(private val plantDao: PlantDao) : ViewModel() {
 
     fun insertPlant(plant: Plant) = viewModelScope.launch {
         val insertedId = plantDao.insertPlant(plant).toInt()
-        plantDao.insertWateringEvent(WateringEvent(plantId = insertedId, date = plant.lastWateringDate))
+        plantDao.insertWateringEvent(WateringEvent(plantId = insertedId, date = plant.lastWateringDate, source = "initial"))
     }
 
     fun updatePlant(plant: Plant) = viewModelScope.launch {
@@ -52,7 +52,7 @@ class PlantViewModel(private val plantDao: PlantDao) : ViewModel() {
             if (elapsed >= halfPeriodMillis) {
                 val now = System.currentTimeMillis()
                 plantDao.waterPlant(plantId, now)
-                plantDao.insertWateringEvent(WateringEvent(plantId = plantId, date = now))
+                plantDao.insertWateringEvent(WateringEvent(plantId = plantId, date = now, source = "manual"))
             }
         }
     }
@@ -62,6 +62,9 @@ class PlantViewModel(private val plantDao: PlantDao) : ViewModel() {
 
     fun getAllWateringEvents(plantId: Int): Flow<List<com.example.plantmanager.data.local.WateringEvent>> =
         plantDao.getAllWateringEvents(plantId)
+
+    fun getEventsInRange(startMillis: Long, endMillis: Long): Flow<List<com.example.plantmanager.data.local.WateringEvent>> =
+        plantDao.getEventsInRange(startMillis, endMillis)
 
 
     suspend fun needsWatering(plant: Plant): Boolean {

@@ -42,4 +42,7 @@ interface PlantDao {
 
     @Query("SELECT * FROM watering_events WHERE plantId = :plantId ORDER BY date DESC")
     fun getAllWateringEvents(plantId: Int): Flow<List<WateringEvent>>
+
+    @Query("SELECT * FROM watering_events WHERE date BETWEEN :startMillis AND :endMillis ORDER BY date ASC")
+    fun getEventsInRange(startMillis: Long, endMillis: Long): Flow<List<WateringEvent>>
 }
