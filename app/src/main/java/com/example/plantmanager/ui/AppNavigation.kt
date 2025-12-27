@@ -15,6 +15,8 @@ import com.example.plantmanager.ui.screens.EditPlantScreen
 import com.example.plantmanager.ui.screens.WeatherDetailScreen
 import com.example.plantmanager.ui.screens.WateringHistoryScreen
 import com.example.plantmanager.ui.screens.WateringCalendarScreen
+import com.example.plantmanager.ui.screens.AdviceScreen
+import com.example.plantmanager.ui.screens.StatisticsScreen
 
 @Composable
 fun AppNavigation(
@@ -42,6 +44,12 @@ fun AppNavigation(
                 },
                 onCalendarClick = {
                     navController.navigate(Screen.WateringCalendar.route)
+                },
+                onAdviceClick = {
+                    navController.navigate(Screen.Advice.route)
+                },
+                onStatsClick = {
+                    navController.navigate(Screen.Statistics.route)
                 }
             )
         }
@@ -105,6 +113,19 @@ fun AppNavigation(
                 onBack = { navController.popBackStack() }
             )
         }
+
+        composable(Screen.Advice.route) {
+            AdviceScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.Statistics.route) {
+            StatisticsScreen(
+                plantViewModel = plantViewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
     }
 }
 
@@ -123,4 +144,6 @@ sealed class Screen(val route: String) {
     }
     object WeatherDetail : Screen("weather_detail")
     object WateringCalendar : Screen("watering_calendar")
+    object Advice : Screen("advice")
+    object Statistics : Screen("statistics")
 }

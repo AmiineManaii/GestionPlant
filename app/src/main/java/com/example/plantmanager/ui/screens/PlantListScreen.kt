@@ -27,6 +27,8 @@ import com.example.plantmanager.viewmodels.WeatherViewModel
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.WaterDrop
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -41,7 +43,9 @@ fun PlantListScreen(
     onPlantClick: (Int) -> Unit,
     onAddPlantClick: () -> Unit,
     onWeatherClick: () -> Unit,
-    onCalendarClick: () -> Unit
+    onCalendarClick: () -> Unit,
+    onAdviceClick: () -> Unit,
+    onStatsClick: () -> Unit
 ) {
     val plants by plantViewModel.allPlants.collectAsState(initial = emptyList())
     val weatherState by weatherViewModel.weatherState.collectAsState()
@@ -119,6 +123,12 @@ fun PlantListScreen(
                     )
                 },
                 actions = {
+                    IconButton(onClick = onAdviceClick) {
+                        Icon(Icons.Default.Lightbulb, contentDescription = "Conseils")
+                    }
+                    IconButton(onClick = onStatsClick) {
+                        Icon(Icons.Default.Equalizer, contentDescription = "Statistiques")
+                    }
                     IconButton(onClick = onCalendarClick) {
                         Icon(Icons.Default.CalendarToday, contentDescription = "Calendrier")
                     }
