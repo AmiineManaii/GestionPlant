@@ -21,7 +21,8 @@ fun WeatherCard(
     location: Pair<Double, Double>?,
     hasLocationPermission: Boolean,
     onRefresh: () -> Unit,
-    onRequestPermission: () -> Unit
+    onRequestPermission: () -> Unit,
+    onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -29,7 +30,8 @@ fun WeatherCard(
             .padding(horizontal = 16.dp, vertical = 8.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+        ),
+        onClick = onClick
     ) {
         Column(
             modifier = Modifier.padding(16.dp)

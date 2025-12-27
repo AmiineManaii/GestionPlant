@@ -31,7 +31,8 @@ fun PlantListScreen(
     plantViewModel: PlantViewModel = viewModel(),
     weatherViewModel: WeatherViewModel = viewModel(),
     onPlantClick: (Int) -> Unit,
-    onAddPlantClick: () -> Unit
+    onAddPlantClick: () -> Unit,
+    onWeatherClick: () -> Unit
 ) {
     val plants by plantViewModel.allPlants.collectAsState(initial = emptyList())
     val weatherState by weatherViewModel.weatherState.collectAsState()
@@ -129,7 +130,8 @@ fun PlantListScreen(
                 location = location,
                 hasLocationPermission = hasLocationPermission,
                 onRefresh = { weatherViewModel.fetchWeather() },
-                onRequestPermission = { requestLocationPermission() }
+                onRequestPermission = { requestLocationPermission() },
+                onClick = onWeatherClick
             )
 
 

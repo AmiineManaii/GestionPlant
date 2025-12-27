@@ -12,6 +12,7 @@ import com.example.plantmanager.ui.screens.PlantListScreen
 import com.example.plantmanager.ui.screens.AddPlantScreen
 import com.example.plantmanager.ui.screens.PlantDetailScreen
 import com.example.plantmanager.ui.screens.EditPlantScreen
+import com.example.plantmanager.ui.screens.WeatherDetailScreen
 import com.example.plantmanager.ui.screens.WateringHistoryScreen
 
 @Composable
@@ -34,6 +35,9 @@ fun AppNavigation(
                 },
                 onAddPlantClick = {
                     navController.navigate(Screen.AddPlant.route)
+                },
+                onWeatherClick = {
+                    navController.navigate(Screen.WeatherDetail.route)
                 }
             )
         }
@@ -83,6 +87,13 @@ fun AppNavigation(
                 onBack = { navController.popBackStack() }
             )
         }
+        
+        composable(Screen.WeatherDetail.route) {
+            WeatherDetailScreen(
+                weatherViewModel = weatherViewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
     }
 }
 
@@ -99,4 +110,5 @@ sealed class Screen(val route: String) {
     object WateringHistory : Screen("watering_history/{plantId}") {
         fun createRoute(plantId: Int) = "watering_history/$plantId"
     }
+    object WeatherDetail : Screen("weather_detail")
 }
