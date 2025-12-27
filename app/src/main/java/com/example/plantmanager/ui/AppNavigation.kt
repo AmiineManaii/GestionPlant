@@ -138,7 +138,6 @@ sealed class Screen(val route: String) {
     object EditPlant : Screen("plant_edit/{plantId}") {
         fun createRoute(plantId: Int) = "plant_edit/$plantId"
     }
-    object Settings : Screen("settings")
     object WateringHistory : Screen("watering_history/{plantId}") {
         fun createRoute(plantId: Int) = "watering_history/$plantId"
     }

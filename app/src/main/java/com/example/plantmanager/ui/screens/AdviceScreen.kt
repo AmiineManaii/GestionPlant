@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.plantmanager.ui.components.SectionCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,103 +44,42 @@ fun AdviceScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            ElevatedCard {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.WaterDrop, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Arrosage", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    }
-                    Text("Vérifier l’humidité du sol avant d’arroser.")
-                    Text("Arroser le matin pour limiter l’évaporation.")
-                    Text("Adapter la fréquence selon la saison et l’espèce.")
-                    Text("Éviter l’eau stagnante dans les pots.")
-                }
+            SectionCard(icon = Icons.Default.WaterDrop, title = "Arrosage") {
+                Text("Vérifier l’humidité du sol avant d’arroser.")
+                Text("Arroser le matin pour limiter l’évaporation.")
+                Text("Adapter la fréquence selon la saison et l’espèce.")
+                Text("Éviter l’eau stagnante dans les pots.")
             }
 
-            ElevatedCard {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Thermostat, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Température", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    }
-                    Text("Protéger des courants d’air froid en hiver.")
-                    Text("Éviter les fortes chaleurs directes près des fenêtres.")
-                    Text("Respecter les minimums et maximums de chaque plante.")
-                }
+            SectionCard(icon = Icons.Default.Thermostat, title = "Température") {
+                Text("Protéger des courants d’air froid en hiver.")
+                Text("Éviter les fortes chaleurs directes près des fenêtres.")
+                Text("Respecter les minimums et maximums de chaque plante.")
             }
 
-            ElevatedCard {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Lightbulb, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Lumière", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    }
-                    Text("Privilégier une lumière indirecte pour la plupart des plantes.")
-                    Text("Tourner le pot régulièrement pour une croissance homogène.")
-                    Text("Surveiller les brûlures de feuilles exposées au soleil direct.")
-                }
+            SectionCard(icon = Icons.Default.Lightbulb, title = "Lumière") {
+                Text("Privilégier une lumière indirecte pour la plupart des plantes.")
+                Text("Tourner le pot régulièrement pour une croissance homogène.")
+                Text("Surveiller les brûlures de feuilles exposées au soleil direct.")
             }
 
-            ElevatedCard {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Forest, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Entretien", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    }
-                    Text("Tailler les feuilles abîmées pour stimuler la croissance.")
-                    Text("Rempoter une fois par an si les racines sont serrées.")
-                    Text("Utiliser un substrat adapté à l’espèce.")
-                }
+            SectionCard(icon = Icons.Default.Lightbulb, title = "Entretien") {
+                Text("Tailler les feuilles abîmées pour stimuler la croissance.")
+                Text("Rempoter une fois par an si les racines sont serrées.")
+                Text("Utiliser un substrat adapté à l’espèce.")
             }
 
-            ElevatedCard {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.AcUnit, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Humidité et saison", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    }
-                    Text("Augmenter l’humidité ambiante pour les plantes tropicales.")
-                    Text("Réduire les arrosages en hiver, reprendre progressivement au printemps.")
-                    Text("Nettoyer les feuilles pour favoriser la photosynthèse.")
-                }
+            SectionCard(icon = Icons.Default.AcUnit, title = "Humidité et saison") {
+                Text("Augmenter l’humidité ambiante pour les plantes tropicales.")
+                Text("Réduire les arrosages en hiver, reprendre progressivement au printemps.")
+                Text("Nettoyer les feuilles pour favoriser la photosynthèse.")
             }
 
-            ElevatedCard {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Balance, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Bonnes pratiques", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    }
-                    Text("Observer régulièrement l’état des feuilles et du sol.")
-                    Text("Adapter les soins au lieu: intérieur, balcon ou extérieur.")
-                    Text("Noter les arrosages pour suivre l’évolution.")
-                }
+            SectionCard(icon = Icons.Default.Balance, title = "Bonnes pratiques") {
+                Text("Observer régulièrement l’état des feuilles et du sol.")
+                Text("Adapter les soins au lieu: intérieur, balcon ou extérieur.")
+                Text("Noter les arrosages pour suivre l’évolution.")
             }
         }
     }
 }
-
