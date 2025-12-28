@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.plantmanager.ui.components.SectionCard
 import com.example.plantmanager.viewmodels.PlantViewModel
 import java.util.Calendar
 
@@ -27,7 +28,6 @@ fun StatisticsScreen(
     val needsWater by plantViewModel.plantsNeedingWater.collectAsState(initial = emptyList())
 
     val now = System.currentTimeMillis()
-    val cal = remember { Calendar.getInstance() }
     val start30 = remember(now) {
         Calendar.getInstance().apply { timeInMillis = now; add(Calendar.DAY_OF_YEAR, -30) }.timeInMillis
     }

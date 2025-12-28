@@ -7,13 +7,15 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [Plant::class, WateringEvent::class],
-    version = 3,
+    entities = [Plant::class, WateringEvent::class, User::class, Session::class],
+    version = 5,
     exportSchema = false
 )
 abstract class PlantDatabase : RoomDatabase() {
 
     abstract fun plantDao(): PlantDao
+    abstract fun userDao(): UserDao
+    abstract fun sessionDao(): SessionDao
 
     companion object {
         @Volatile

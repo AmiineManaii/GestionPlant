@@ -17,17 +17,25 @@ import com.example.plantmanager.ui.screens.WateringHistoryScreen
 import com.example.plantmanager.ui.screens.WateringCalendarScreen
 import com.example.plantmanager.ui.screens.AdviceScreen
 import com.example.plantmanager.ui.screens.StatisticsScreen
+import com.example.plantmanager.ui.screens.SettingsScreen
+import com.example.plantmanager.ui.screens.SignInScreen
+import com.example.plantmanager.ui.screens.SignUpScreen
+import com.example.plantmanager.ui.screens.ProfileScreen
+
 
 @Composable
 fun AppNavigation(
     plantViewModel: PlantViewModel,
-    weatherViewModel: WeatherViewModel
+    weatherViewModel: WeatherViewModel,
+    authViewModel: com.example.plantmanager.viewmodels.AuthViewModel,
+    startDestination: String
 ) {
     val navController = rememberNavController()
 
+
     NavHost(
         navController = navController,
-        startDestination = Screen.PlantList.route
+        startDestination = startDestination
     ) {
         composable(Screen.PlantList.route) {
             PlantListScreen(
@@ -50,6 +58,9 @@ fun AppNavigation(
                 },
                 onStatsClick = {
                     navController.navigate(Screen.Statistics.route)
+                },
+                onSettingsClick = {
+                    navController.navigate(Screen.Settings.route)
                 }
             )
         }
@@ -126,6 +137,49 @@ fun AppNavigation(
                 onBack = { navController.popBackStack() }
             )
         }
+
+        composable(Screen.Settings.route) {
+            SettingsScreen(
+                onBack = { navController.popBackStack() },
+                onOpenProfile = { navController.navigate(Screen.Profile.route) }
+            )
+        }
+
+        composable(Screen.SignIn.route) {
+            SignInScreen(
+                authViewModel = authViewModel,
+                onSignedIn = {
+                    navController.navigate(Screen.PlantList.route) {
+                        popUpTo(Screen.SignIn.route) { inclusive = true }
+                    }
+                },
+                onGoToSignUp = { navController.navigate(Screen.SignUp.route) }
+            )
+        }
+
+        composable(Screen.SignUp.route) {
+            SignUpScreen(
+                authViewModel = authViewModel,
+                onSignedUp = {
+                    navController.navigate(Screen.PlantList.route) {
+                        popUpTo(Screen.SignUp.route) { inclusive = true }
+                    }
+                },
+                onGoToSignIn = { navController.navigate(Screen.SignIn.route) }
+            )
+        }
+
+        composable(Screen.Profile.route) {
+            ProfileScreen(
+                onBack = { navController.popBackStack() },
+                onLogout = {
+                    authViewModel.logout()
+                    navController.navigate(Screen.SignIn.route) {
+                        popUpTo(Screen.PlantList.route) { inclusive = true }
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -145,4 +199,8 @@ sealed class Screen(val route: String) {
     object WateringCalendar : Screen("watering_calendar")
     object Advice : Screen("advice")
     object Statistics : Screen("statistics")
+    object Settings : Screen("settings")
+    object SignIn : Screen("sign_in")
+    object SignUp : Screen("sign_up")
+    object Profile : Screen("profile")
 }

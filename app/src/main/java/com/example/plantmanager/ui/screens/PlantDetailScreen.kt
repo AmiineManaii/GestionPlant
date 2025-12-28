@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import com.example.plantmanager.viewmodels.WeatherViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -39,15 +40,15 @@ fun PlantDetailScreen(
     onBack: () -> Unit,
     onEdit: (Int) -> Unit,
     onViewHistory: (Int) -> Unit,
-    weatherViewModel: com.example.plantmanager.viewmodels.WeatherViewModel
+    weatherViewModel: WeatherViewModel
 ) {
     val plantState by plantViewModel.getPlantFlowById(plantId).collectAsState(initial = null)
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
     val weatherState by weatherViewModel.weatherState.collectAsState()
     val currentTemp = when (weatherState) {
-        is com.example.plantmanager.viewmodels.WeatherViewModel.WeatherState.Success ->
-            (weatherState as com.example.plantmanager.viewmodels.WeatherViewModel.WeatherState.Success)
+        is WeatherViewModel.WeatherState.Success ->
+            (weatherState as WeatherViewModel.WeatherState.Success)
                 .data.current_weather.temperature
         else -> null
     }
@@ -419,7 +420,7 @@ fun PlantDetailScreen(
                 }
             }
 
-            // Notes
+
             if (!plant.notes.isNullOrEmpty()) {
                 item {
                     ElevatedCard(modifier = Modifier.fillMaxWidth()) {
@@ -438,7 +439,6 @@ fun PlantDetailScreen(
         }
     }
 
-    // Dialog suppression
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },

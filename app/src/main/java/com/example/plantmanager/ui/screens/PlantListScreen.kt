@@ -22,11 +22,17 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.plantmanager.ui.components.WeatherCard
 import com.example.plantmanager.ui.components.PlantCard
 import com.example.plantmanager.ui.components.LocationPermissionDialog
+import com.example.plantmanager.ui.components.SearchBar
+import com.example.plantmanager.ui.components.FilterChipsRow
 import com.example.plantmanager.viewmodels.PlantViewModel
 import com.example.plantmanager.viewmodels.WeatherViewModel
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Equalizer
+import androidx.compose.material.icons.filled.Settings
+import com.example.plantmanager.notifications.NotificationHelper
+import com.example.plantmanager.notifications.ReminderScheduler
+import com.example.plantmanager.prefs.PreferencesManager
  
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,14 +45,17 @@ fun PlantListScreen(
     onWeatherClick: () -> Unit,
     onCalendarClick: () -> Unit,
     onAdviceClick: () -> Unit,
-    onStatsClick: () -> Unit
+    onStatsClick: () -> Unit,
+    onSettingsClick: () -> Unit
 ) {
     val plants by plantViewModel.allPlants.collectAsState(initial = emptyList())
     val weatherState by weatherViewModel.weatherState.collectAsState()
     val location by weatherViewModel.currentLocation.collectAsState()
 
-    var filter by remember { mutableStateOf(FilterType.ALL) }
+    var filterTag by remember { mutableStateOf("ALL") }
+    var searchQuery by remember { mutableStateOf("") }
     val context = LocalContext.current
+    val prefs = remember { PreferencesManager(context) }
 
 
     var showPermissionDialog by remember { mutableStateOf(false) }
@@ -123,6 +132,9 @@ fun PlantListScreen(
                     IconButton(onClick = onStatsClick) {
                         Icon(Icons.Default.Equalizer, contentDescription = "Statistiques")
                     }
+                    IconButton(onClick = onSettingsClick) {
+                        Icon(Icons.Default.Settings, contentDescription = "Réglages")
+                    }
                     IconButton(onClick = onCalendarClick) {
                         Icon(Icons.Default.CalendarToday, contentDescription = "Calendrier")
                     }
@@ -138,14 +150,25 @@ fun PlantListScreen(
             }
         }
     ) { paddingValues ->
-        val filteredPlants = if (plants.isEmpty()) emptyList() else when (filter) {
-            FilterType.ALL -> plants
-            FilterType.NEEDS_WATER -> {
-                plants.filter { plant ->
-                    val nextWatering = plant.lastWateringDate +
-                            (plant.wateringFrequency * 24 * 60 * 60 * 1000)
-                    System.currentTimeMillis() > nextWatering
-                }
+        val base = when (filterTag) {
+            "NEEDS_WATER" -> plants.filter { plant ->
+                val nextWatering = plant.lastWateringDate + (plant.wateringFrequency * 24 * 60 * 60 * 1000)
+                System.currentTimeMillis() > nextWatering
+            }
+            else -> plants
+        }
+        val byTag = when (filterTag) {
+            "INDOOR" -> base.filter { it.locationType.equals("Indoor", true) }
+            "OUTDOOR" -> base.filter { it.locationType.equals("Outdoor", true) }
+            "BALCONY" -> base.filter { it.locationType.equals("Balcony", true) }
+            else -> base
+        }
+        val filteredPlants = byTag.filter { it.name.contains(searchQuery, ignoreCase = true) }
+
+        LaunchedEffect(plants) {
+            NotificationHelper.createChannel(context)
+            plants.forEach { plant ->
+                ReminderScheduler.scheduleForPlant(context, plant, prefs.getReminderLeadHours())
             }
         }
 
@@ -167,13 +190,18 @@ fun PlantListScreen(
                 )
             }
 
-            // Calendrier déplacé vers écran dédié
+            item {
+                SearchBar(
+                    query = searchQuery,
+                    onQueryChange = { searchQuery = it }
+                )
+            }
 
             item {
-                FilterRow(
-                    currentFilter = filter,
-                    onFilterChange = { filter = it },
-                    plantCount = plants.size
+                FilterChipsRow(
+                    selected = filterTag,
+                    onSelectedChange = { filterTag = it },
+                    allCount = plants.size
                 )
             }
 
@@ -213,34 +241,6 @@ fun PlantListScreen(
 
 
 @Composable
-fun FilterRow(
-    currentFilter: FilterType,
-    onFilterChange: (FilterType) -> Unit,
-    plantCount: Int
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Filtres
-        FilterChip(
-            selected = currentFilter == FilterType.ALL,
-            onClick = { onFilterChange(FilterType.ALL) },
-            label = { Text("Toutes ($plantCount)") }
-        )
-
-        FilterChip(
-            selected = currentFilter == FilterType.NEEDS_WATER,
-            onClick = { onFilterChange(FilterType.NEEDS_WATER) },
-            label = { Text("À arroser") }
-        )
-    }
-}
-
-@Composable
 fun EmptyState(onAddClick: () -> Unit) {
     Column(
         modifier = Modifier
@@ -277,8 +277,6 @@ fun EmptyState(onAddClick: () -> Unit) {
     }
 }
 
-enum class FilterType {
-    ALL, NEEDS_WATER
-}
+ 
 
 

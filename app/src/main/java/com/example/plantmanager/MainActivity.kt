@@ -15,6 +15,8 @@ import com.example.plantmanager.ui.AppNavigation
 import com.example.plantmanager.ui.theme.PlantManagerTheme
 import com.example.plantmanager.viewmodels.PlantViewModel
 import com.example.plantmanager.viewmodels.WeatherViewModel
+import com.example.plantmanager.viewmodels.AuthViewModel
+ 
 
 class MainActivity : ComponentActivity() {
 
@@ -24,7 +26,10 @@ override fun onCreate(savedInstanceState: Bundle?) {
 
     val database = PlantDatabase.getDatabase(this)
     val plantDao = database.plantDao()
+    val userDao = database.userDao()
+    val sessionDao = database.sessionDao()
     val locationManager = LocationManager(this)
+ 
 
     val plantViewModelFactory = object : ViewModelProvider.Factory {
         override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
@@ -37,9 +42,15 @@ override fun onCreate(savedInstanceState: Bundle?) {
             return WeatherViewModel(locationManager) as T
         }
     }
+    val authViewModelFactory = object : ViewModelProvider.Factory {
+        override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+            return AuthViewModel(userDao, sessionDao) as T
+        }
+    }
 
     val plantViewModel: PlantViewModel by viewModels { plantViewModelFactory }
     val weatherViewModel: WeatherViewModel by viewModels { weatherViewModelFactory }
+    val authViewModel: AuthViewModel by viewModels { authViewModelFactory }
 
     setContent {
         PlantManagerTheme {
@@ -48,9 +59,15 @@ override fun onCreate(savedInstanceState: Bundle?) {
                 modifier = Modifier.fillMaxSize(),
                 color = MaterialTheme.colorScheme.background
             ) {
+                val startRoute = if (kotlin.run {
+                        val s = kotlinx.coroutines.runBlocking { sessionDao.getSessionNow() }
+                        s?.currentUserId != null
+                    }) "plant_list" else "sign_in"
                 AppNavigation(
                     plantViewModel = plantViewModel,
-                    weatherViewModel = weatherViewModel
+                    weatherViewModel = weatherViewModel,
+                    authViewModel = authViewModel,
+                    startDestination = startRoute
                 )
             }
         }
