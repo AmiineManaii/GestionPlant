@@ -10,6 +10,6 @@ data class User(
     val name: String,
     val email: String,
     val passwordHash: String,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val reminderLeadHours: Int = 2
 )
-

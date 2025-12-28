@@ -79,4 +79,24 @@ class AuthViewModel(
     fun logout() = viewModelScope.launch {
         sessionDao.clear()
     }
+
+    suspend fun getCurrentUserNow(): User? {
+        val s = sessionDao.getSessionNow()
+        val id = s?.currentUserId ?: return null
+        return userDao.getUserByIdNow(id)
+    }
+
+    fun setReminderLeadHours(hours: Int) = viewModelScope.launch {
+        val s = sessionDao.getSessionNow()
+        val id = s?.currentUserId ?: return@launch
+        val u = userDao.getUserByIdNow(id) ?: return@launch
+        userDao.updateUser(u.copy(reminderLeadHours = hours))
+    }
+
+    fun updateProfile(name: String, email: String) = viewModelScope.launch {
+        val s = sessionDao.getSessionNow()
+        val id = s?.currentUserId ?: return@launch
+        val u = userDao.getUserByIdNow(id) ?: return@launch
+        userDao.updateUser(u.copy(name = name, email = email))
+    }
 }

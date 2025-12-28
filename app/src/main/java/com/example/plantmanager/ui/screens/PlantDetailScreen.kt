@@ -59,12 +59,11 @@ fun PlantDetailScreen(
         minOk && maxOk
     }
 
-    // Couleurs dynamiques selon la sécurité température
     val accentColor = if (isTempSafe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
     val overlayGradientColors = if (isTempSafe)
         listOf(Color.Transparent, Color(0xFF2E7D32))
     else
-        listOf(Color.Transparent, Color(0xFFB71C1C)) // Overlay rouge sombre quand danger
+        listOf(Color.Transparent, Color(0xFFB71C1C))
 
     val placeholderGradient = if (isTempSafe)
         listOf(Color(0xFF2E7D32), Color(0xFF1B5E20))
@@ -122,7 +121,6 @@ fun PlantDetailScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp),
             contentPadding = PaddingValues(bottom = 100.dp, start = 16.dp, end = 16.dp, top = 0.dp)
         ) {
-            // Hero Image Section
             item {
                 Box(
                     modifier = Modifier
@@ -151,14 +149,12 @@ fun PlantDetailScreen(
                         }
                     }
 
-                    // Overlay gradient dynamique
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .background(Brush.verticalGradient(overlayGradientColors))
                     )
 
-                    // Infos plante
                     Column(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
@@ -200,7 +196,6 @@ fun PlantDetailScreen(
                 }
             }
 
-            // Carte arrosage avec progression + dates exactes
             item {
                 val history by plantViewModel.getLastWateringEvents(plantId).collectAsState(initial = emptyList())
                 val daysSinceLast = ((System.currentTimeMillis() - plant.lastWateringDate) / (24 * 60 * 60 * 1000)).toLong().coerceAtLeast(0).toInt()
@@ -213,10 +208,8 @@ fun PlantDetailScreen(
                     elapsed >= halfPeriodMillis
                 }
 
-                // Calcul du prochain arrosage
                 val nextWateringMillis = plant.lastWateringDate + (plant.wateringFrequency.toLong() * 24 * 60 * 60 * 1000)
 
-                // Formatage des dates
                 val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
                 val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
 
@@ -289,7 +282,6 @@ fun PlantDetailScreen(
 
                         Spacer(Modifier.height(24.dp))
 
-                        // Dates exactes
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -367,7 +359,6 @@ fun PlantDetailScreen(
                 }
             }
 
-            // Cartes Emplacement & Température
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     ElevatedCard(modifier = Modifier.weight(1f)) {

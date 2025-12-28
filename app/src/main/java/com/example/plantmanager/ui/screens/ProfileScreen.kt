@@ -9,19 +9,26 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.plantmanager.prefs.PreferencesManager
 import com.example.plantmanager.ui.components.SectionCard
+import com.example.plantmanager.viewmodels.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     onBack: () -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    authViewModel: AuthViewModel
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    val prefs = remember { PreferencesManager(context) }
-    var name by remember { mutableStateOf(prefs.getProfileName()) }
-    var email by remember { mutableStateOf(prefs.getProfileEmail()) }
+    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    LaunchedEffect(Unit) {
+        val u = authViewModel.getCurrentUserNow()
+        if (u != null) {
+            name = u.name
+            email = u.email
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -41,11 +48,11 @@ fun ProfileScreen(
             SectionCard(icon = Icons.Default.Person, title = "Informations") {
                 OutlinedTextField(value = name, onValueChange = {
                     name = it
-                    prefs.setProfileName(it)
+                    authViewModel.updateProfile(name = it, email = email)
                 }, label = { Text("Nom") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(value = email, onValueChange = {
                     email = it
-                    prefs.setProfileEmail(it)
+                    authViewModel.updateProfile(name = name, email = it)
                 }, label = { Text("Email") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(12.dp))
                 Button(onClick = onLogout) { Text("Se déconnecter") }

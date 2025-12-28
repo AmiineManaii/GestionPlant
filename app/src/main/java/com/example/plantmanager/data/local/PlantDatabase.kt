@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [Plant::class, WateringEvent::class, User::class, Session::class],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class PlantDatabase : RoomDatabase() {

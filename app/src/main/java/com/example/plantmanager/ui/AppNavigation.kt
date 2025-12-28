@@ -41,6 +41,7 @@ fun AppNavigation(
             PlantListScreen(
                 plantViewModel = plantViewModel,
                 weatherViewModel = weatherViewModel,
+                authViewModel = authViewModel,
                 onPlantClick = { plant ->
                     navController.navigate(Screen.PlantDetail.createRoute(plant))
                 },
@@ -141,7 +142,8 @@ fun AppNavigation(
         composable(Screen.Settings.route) {
             SettingsScreen(
                 onBack = { navController.popBackStack() },
-                onOpenProfile = { navController.navigate(Screen.Profile.route) }
+                onOpenProfile = { navController.navigate(Screen.Profile.route) },
+                authViewModel = authViewModel
             )
         }
 
@@ -177,7 +179,8 @@ fun AppNavigation(
                     navController.navigate(Screen.SignIn.route) {
                         popUpTo(Screen.PlantList.route) { inclusive = true }
                     }
-                }
+                },
+                authViewModel = authViewModel
             )
         }
     }

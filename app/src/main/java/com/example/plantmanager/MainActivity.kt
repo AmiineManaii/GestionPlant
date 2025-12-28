@@ -54,7 +54,6 @@ override fun onCreate(savedInstanceState: Bundle?) {
 
     setContent {
         PlantManagerTheme {
-            // A surface container using the 'background' color from the theme
             Surface(
                 modifier = Modifier.fillMaxSize(),
                 color = MaterialTheme.colorScheme.background
@@ -73,4 +72,4 @@ override fun onCreate(savedInstanceState: Bundle?) {
         }
     }
 }
-} 
+}

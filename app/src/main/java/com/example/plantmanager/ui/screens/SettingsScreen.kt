@@ -20,18 +20,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.plantmanager.notifications.NotificationHelper
 import com.example.plantmanager.notifications.ReminderScheduler
-import com.example.plantmanager.prefs.PreferencesManager
 import com.example.plantmanager.ui.components.SectionCard
+import com.example.plantmanager.viewmodels.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
-    onOpenProfile: () -> Unit
+    onOpenProfile: () -> Unit,
+    authViewModel: AuthViewModel
 ) {
     val context = LocalContext.current
-    val prefs = remember { PreferencesManager(context) }
-    var leadHours by remember { mutableStateOf(prefs.getReminderLeadHours()) }
+    var leadHours by remember { mutableStateOf(2) }
+    LaunchedEffect(Unit) {
+        val u = authViewModel.getCurrentUserNow()
+        if (u != null) leadHours = u.reminderLeadHours
+    }
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     Scaffold(
@@ -60,7 +64,7 @@ fun SettingsScreen(
                             selected = leadHours == h,
                             onClick = {
                                 leadHours = h
-                                prefs.setReminderLeadHours(h)
+                                authViewModel.setReminderLeadHours(h)
                             },
                             label = { Text("$h h") }
                         )

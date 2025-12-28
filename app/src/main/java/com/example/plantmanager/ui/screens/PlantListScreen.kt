@@ -10,11 +10,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -32,14 +30,16 @@ import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.Settings
 import com.example.plantmanager.notifications.NotificationHelper
 import com.example.plantmanager.notifications.ReminderScheduler
-import com.example.plantmanager.prefs.PreferencesManager
- 
+import com.example.plantmanager.viewmodels.AuthViewModel
+import com.example.plantmanager.ui.components.EmptyState
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlantListScreen(
     plantViewModel: PlantViewModel = viewModel(),
     weatherViewModel: WeatherViewModel = viewModel(),
+    authViewModel: AuthViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
     onPlantClick: (Int) -> Unit,
     onAddPlantClick: () -> Unit,
     onWeatherClick: () -> Unit,
@@ -55,7 +55,11 @@ fun PlantListScreen(
     var filterTag by remember { mutableStateOf("ALL") }
     var searchQuery by remember { mutableStateOf("") }
     val context = LocalContext.current
-    val prefs = remember { PreferencesManager(context) }
+    var leadHours by remember { mutableStateOf(2) }
+    LaunchedEffect(Unit) {
+        val u = authViewModel.getCurrentUserNow()
+        if (u != null) leadHours = u.reminderLeadHours
+    }
 
 
     var showPermissionDialog by remember { mutableStateOf(false) }
@@ -165,10 +169,10 @@ fun PlantListScreen(
         }
         val filteredPlants = byTag.filter { it.name.contains(searchQuery, ignoreCase = true) }
 
-        LaunchedEffect(plants) {
+        LaunchedEffect(plants, leadHours) {
             NotificationHelper.createChannel(context)
             plants.forEach { plant ->
-                ReminderScheduler.scheduleForPlant(context, plant, prefs.getReminderLeadHours())
+                ReminderScheduler.scheduleForPlant(context, plant, leadHours)
             }
         }
 
@@ -240,42 +244,6 @@ fun PlantListScreen(
 
 
 
-@Composable
-fun EmptyState(onAddClick: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "🌵",
-            fontSize = 64.sp
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Aucune plante",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Text(
-            text = "Commencez par ajouter votre première plante",
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(onClick = onAddClick) {
-            Text("Ajouter une plante")
-        }
-    }
-}
 
  
 
