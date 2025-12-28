@@ -125,7 +125,7 @@ fun PlantListScreen(
                 title = {
                     Text(
                         text = "🌿 PlantManager",
-                        fontSize = 20.sp,
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
                 },

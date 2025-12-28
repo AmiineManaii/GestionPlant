@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.plantmanager.data.local.Plant
 import coil.compose.AsyncImage
+import kotlin.math.roundToInt
 
 @Composable
 fun PlantCard(
@@ -83,13 +84,13 @@ fun PlantCard(
 
                 val daysUntilWatering = remember(plant) {
                     val remaining = plant.lastWateringDate + (plant.wateringFrequency * 24 * 60 * 60 * 1000) - System.currentTimeMillis()
-                    (remaining / (24 * 60 * 60 * 1000)).toInt()
+                    (remaining.toDouble() / (24 * 60 * 60 * 1000)).roundToInt()
                 }
 
                 Text(
                     text = if (needsWatering) {
                         "⚠️ Besoin d'eau maintenant!"
-                    } else if (daysUntilWatering <= 1) {
+                    } else if (daysUntilWatering < 1) {
                         "💧 À arroser demain"
                     } else {
                         "💧 Prochain arrosage dans $daysUntilWatering jours"

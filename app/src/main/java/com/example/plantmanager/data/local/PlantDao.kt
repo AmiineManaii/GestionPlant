@@ -7,7 +7,7 @@ import com.example.plantmanager.data.local.WateringEvent
 @Dao
 interface PlantDao {
 
-    @Query("SELECT * FROM plants ORDER BY name ASC")
+    @Query("SELECT * FROM plants ORDER BY wateringFrequency ASC")
     fun getAllPlants(): Flow<List<Plant>>
 
     @Query("SELECT * FROM plants WHERE id = :plantId")
